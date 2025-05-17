@@ -130,65 +130,79 @@ def extract_specific_text(text):
     return matches
     
 # create the gui 
-def create_gui_application():
+def create_gui_application(pre_check_title_list):
 
     root = tk.Tk()
+    # 固定視窗大小
+    root.geometry("500x400")
+    root.resizable(False, False)
     # 標題和版本
     root.title("禱告會PPT製作工具")
     version_label = tk.Label(root, text="Version: 1.0.0", fg="gray")
     version_label.pack(side=tk.BOTTOM, pady=5)
     input_docx_path = tk.Entry(root, width=40)
     # 選取檔案按鈕
-    input_docx_path_label = tk.Label(root, text="Select DOCX File:")
+    input_docx_path_label = tk.Label(root, text="請輸入或選取禱告單路徑")
     input_docx_path_label.pack(pady=5)
-    select_file_button = tk.Button(root, text="Select", command=lambda: select_docx_file(input_docx_path))
+    select_file_button = tk.Button(root, text="選取", command=lambda: select_docx_file(input_docx_path))
     select_file_button.pack(pady=5)
     input_docx_path_label.pack(pady=5)
     input_docx_path.pack(pady=5)
 
-    output_pptx_path_label = tk.Label(root, text="Enter Output PPTX Path:")
+    output_pptx_path_label = tk.Label(root, text="請輸入或選取輸出PPT名稱")
     output_pptx_path_label.pack(pady=5)
     output_pptx_path = tk.Entry(root, width=40)
-# Generate today's date in the desired format
+
+    # 自動產生默認禱告會PPT output 名稱
     today_date = datetime.now().strftime("%Y年%m月%d日")
     output_pptx_path.insert(0, f"{today_date}_國度復興禱告會.pptx")
     output_pptx_path.pack(pady=5)
-    execute_button = tk.Button(root, text="Generate Presentation", command=lambda: generate_output_ppt(input_docx_path,output_pptx_path))
-    execute_button.pack(pady=10)
 
-    title_list_label = tk.Label(root, text="Title List:")
+    # 這邊選取標題列表，請用dot 隔開(標題一,標題二)
+    title_list_label = tk.Label(root, text="標題列表:")
     title_list_label.pack(pady=5)
     title_list_panel = tk.Entry(root, width=40)
     title_list_panel.pack(pady=5)
+
+    # 產生標題列按鈕 
+
+    # 產生PPT按鈕
+    execute_button = tk.Button(root, text="產生PPT", command=lambda: generate_output_ppt(input_docx_path,output_pptx_path,pre_check_title_list,title_list_panel))
+    execute_button.pack(pady=10)
     
 
 
 
     root.mainloop()
 
-def generate_output_ppt(input_docx_path, output_pptx_path):
+def generate_output_ppt(input_docx_path, output_pptx_path,pre_check_title_list, title_lists):
+
+
 
     docx_path =input_docx_path.get()
     if not docx_path:
-        tk.messagebox.showerror("Error", "Please select a DOCX file.")
+        tk.messagebox.showerror("Error", "請選取文字檔")
         return
     elif not docx_path.endswith(".docx"):
-        tk.messagebox.showerror("Error", "Please select a valid DOCX file.")
+        tk.messagebox.showerror("Error", "請選取正確的文字檔")
         return
-    
+
+    if not pre_check_title_list:
+        tk.messagebox.showerror("Error", "請先按下方的產生標題列按鈕")
+        return
+    elif title_lists.get() == "":
+        tk.messagebox.showerror("Error", "請輸入標題列")
+        return    
     output_filename= output_pptx_path.get()
     if not output_filename:
-        tk.messagebox.showerror("Error", "Please enter an output PPTX file name.")
-        return
-    elif not output_filename.endswith(".pptx"):
-        tk.messagebox.showerror("Error", "Please enter a valid PPTX file name.")
+        tk.messagebox.showerror("Error", "請輸入輸出的PPT名稱.")
         return
     
     slides_data = parse_docx(docx_path)
     for i, (title, content) in enumerate(slides_data, 1):
         add_formatted_slide(title, content, i)
     ppt.save(output_filename)
-    tk.messagebox.showinfo("Success", "Presentation created successfully!")
+    tk.messagebox.showinfo("Success", f"產生成功~路徑在{output_filename}!")
     
 
 def get_spec_titles(slides_data):
@@ -213,6 +227,7 @@ def select_docx_file(input_docx_path):
 
 
 if __name__ == "__main__":
+    pre_check_title_list = False
 
-    create_gui_application()
+    create_gui_application(pre_check_title_list)
     
